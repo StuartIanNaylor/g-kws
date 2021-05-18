@@ -1,4 +1,4 @@
-KWS_PATH=~/google-kws
+KWS_PATH=~/g-kws
 DATA_PATH=$KWS_PATH/dataset
 MODELS_PATH=$KWS_PATH/models2
 CMD_TRAIN="python3 -m kws_streaming.train.model_train_eval"
