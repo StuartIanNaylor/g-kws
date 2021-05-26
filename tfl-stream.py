@@ -9,13 +9,14 @@ def sd_callback(rec, frames, time, status):
     global output_details1
     global inputs1
     global kw_count
-    global not_kw_count
     global kw_sum
     global kw_hit
-    global kw_max
     global kw_avg
     global kw_probability
-
+    global not_kw
+    global silence_count
+    global silence_hit
+    
     # Notify if errors
     if status:
         print('Error:', status)
@@ -38,31 +39,40 @@ def sd_callback(rec, frames, time, status):
       inputs1[s] = interpreter1.get_tensor(output_details1[s]['index'])
      
     if np.argmax(output_data[0]) == 2:
-      if kw_count > 3:
-        print(output_data[0][0], output_data[0][1], output_data[0][2], kw_count, kw_sum)
-        not_kw_count = 0
-        if output_data[0][2] > kw_max:
-          kw_max = output_data[0][2]
+      print(output_data[0][0], output_data[0][1], output_data[0][2], kw_avg, kw_probability, kw_count)
       kw_count += 1
       kw_sum = kw_sum + output_data[0][2]
       kw_avg = kw_sum / kw_count
-      if (kw_sum / kw_avg) / 55 > 1:
-        kw_probability = 1.0
-      else:
-        kw_probability = (kw_sum / kw_avg)  / 55
-      if kw_probability > 0.5:
+      kw_probability = kw_avg / 7.5
+      silence_count = 0
+      if silence_hit == True:
+        print('Silence hit')
+        silence_hit = False
+      if kw_probability > 0.5 and kw_count >= 15:
         kw_hit = True
-    elif np.argmax(output_data[0]) != 2:
-      if not_kw_count > 3:
-        if kw_hit == True:
-          print("Kw threshold hit", kw_max, kw_avg, kw_probability)
-        kw_count = 0
-        kw_sum = 0
-        kw_hit = False
-        kw_max = 0
-        kw_probability = 0
-        not_kw_count = -1
-      not_kw_count += 1
+    elif np.argmax(output_data[0]) == 1:
+      not_kw = True
+      silence_count = 0
+      if silence_hit == True:
+        print('Silence hit')
+        silence_hit = False
+    elif np.argmax(output_data[0]) == 0:
+      not_kw = True
+      silence_count += 1
+      if silence_count >= 100:
+        silence_hit = True
+      
+    if not_kw == True:
+      if kw_hit == True:
+        print("Kw threshold hit", kw_avg, kw_probability, kw_count)
+      kw_count = 0
+      kw_sum = 0
+      kw_hit = False
+      kw_max = 0
+      kw_probability = 0
+      not_kw = False
+
+
 
 
 # Parameters
@@ -71,9 +81,14 @@ word_duration = 10
 rec_duration = 0.020
 sample_rate = 16000
 num_channels = 1
-kw_max = 0
 kw_avg = 0
+kw_count = 0
+kw_sum = 0
 kw_probability = 0
+kw_hit = False
+not_kw = False
+silence_count = 0
+silence_hit = False
 
 sd.default.latency= ('high', 'high')
 sd.default.dtype= ('float32', 'float32')
