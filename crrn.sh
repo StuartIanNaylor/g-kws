@@ -1,17 +1,28 @@
+#!/bin/bash
+
+# Train KWT on Speech commands v2 with 12 labels
+
+KWS_PATH=$PWD
+DATA_PATH=/home/stuart/Dataset-builder/dataset
+MODELS_PATH=$KWS_PATH/models2
+CMD_TRAIN="python -m kws_streaming.train.model_train_eval"
+TF_ENABLE_ONEDNN_OPTS=1
+#PATH=""/usr/local/cuda/bin:$PATH""
+
 $CMD_TRAIN \
 --data_url '' \
---data_dir ~/Dataset-builder/dataset/ \
+--data_dir $DATA_PATH/ \
 --train_dir $MODELS_PATH/crnn_state/ \
---wanted_words silence,notkw,kw \
 --mel_upper_edge_hertz 7600 \
---how_many_training_steps 800,800,800,800 \
+--how_many_training_steps 2000,2000,2000,2000 \
 --learning_rate 0.001,0.0005,0.0001,0.00002 \
 --window_size_ms 40.0 \
 --window_stride_ms 20.0 \
 --mel_num_bins 40 \
 --dct_num_features 20 \
---alsologtostderr \
 --resample 0.0 \
+--alsologtostderr \
+--wanted_words silence,notkw,kw0 \
 --split_data 0 \
 --train 1 \
 --lr_schedule 'exp' \
@@ -30,7 +41,7 @@ crnn \
 --cnn_strides '(1,1),(1,1)' \
 --gru_units 256 \
 --return_sequences 0 \
---dropout1 0.1 \
+--dropout1 0.5 \
 --units1 '128,256' \
 --act1 "'linear','relu'" \
 --stateful 1
